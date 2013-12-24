@@ -59,7 +59,7 @@ list_resize(PyListObject *self, Py_ssize_t newsize)
 		new_allocated = 0;
 	items = self->ob_item;
 	if (new_allocated <= ((~(size_t)0) / sizeof(PyObject *)))
-		PyMem_RESIZE(items, PyObject *, new_allocated);
+      PyMem_RESIZE(items, PyObject *, new_allocated);  //it finally call the realloc in C
 	else
 		items = NULL;
 	if (items == NULL) {
@@ -84,7 +84,7 @@ PyList_Fini(void)
 
 	while (num_free_lists) {
 		num_free_lists--;
-		op = free_lists[num_free_lists]; 
+		op = free_lists[num_free_lists];
 		assert(PyList_CheckExact(op));
 		PyObject_GC_Del(op);
 	}
@@ -105,6 +105,8 @@ PyList_New(Py_ssize_t size)
 	 *  which can cause compiler to optimise out */
 	if (size > PY_SIZE_MAX / sizeof(PyObject *))
 		return PyErr_NoMemory();
+
+  /* how fast do we get when use the objects pool tec??? */
 	if (num_free_lists) {
 		num_free_lists--;
 		op = free_lists[num_free_lists];
@@ -275,6 +277,7 @@ list_dealloc(PyListObject *op)
 		}
 		PyMem_FREE(op->ob_item);
 	}
+  // opps!! we reuse the deleted list???
 	if (num_free_lists < MAXFREELISTS && PyList_CheckExact(op))
 		free_lists[num_free_lists++] = op;
 	else
@@ -575,6 +578,7 @@ list_ass_slice(PyListObject *a, Py_ssize_t ilow, Py_ssize_t ihigh, PyObject *v)
 	Py_ssize_t k;
 	size_t s;
 	int result = -1;	/* guilty until proved innocent */
+
 #define b ((PyListObject *)v)
 	if (v == NULL)
 		n = 0;
@@ -637,6 +641,8 @@ list_ass_slice(PyListObject *a, Py_ssize_t ilow, Py_ssize_t ihigh, PyObject *v)
 		memmove(&item[ihigh+d], &item[ihigh],
 			(k - ihigh)*sizeof(PyObject *));
 	}
+
+  // remove ref here?
 	for (k = 0; k < n; k++, ilow++) {
 		PyObject *w = vitem[k];
 		Py_XINCREF(w);

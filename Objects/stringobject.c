@@ -4944,7 +4944,7 @@ PyString_Format(PyObject *format, PyObject *args)
 }
 
 void
-PyString_InternInPlace(PyObject **p)
+PyString_InternInPlace(PyObject **p)  //double pointer...LOL
 {
 	register PyStringObject *s = (PyStringObject *)(*p);
 	PyObject *t;

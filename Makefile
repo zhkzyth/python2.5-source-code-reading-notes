@@ -57,8 +57,7 @@ MAKESETUP=      $(srcdir)/Modules/makesetup
 
 # Compiler options
 OPT=		-DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
-#BASECFLAGS=	 -fno-strict-aliasing -Wno-long-double -no-cpp-precomp -mno-fused-madd
-BASECFLAGS=	 -fno-strict-aliasing -no-cpp-precomp -mno-fused-madd
+BASECFLAGS=	 -fno-strict-aliasing -Wno-long-double -no-cpp-precomp -mno-fused-madd
 CFLAGS=		$(BASECFLAGS) $(OPT) $(EXTRA_CFLAGS)
 # Both CPPFLAGS and LDFLAGS need to contain the shell's value for setup.py to
 # be able to build extension modules using the directories specified in the

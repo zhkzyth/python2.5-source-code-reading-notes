@@ -266,11 +266,16 @@ lookdict(dictobject *mp, PyObject *key, register long hash)
 	register int cmp;
 	PyObject *startkey;
 
+  //[1]: make a hash calculation,and find the first entry in the hash with the same hash
 	i = (size_t)hash & mask;
 	ep = &ep0[i];
 	if (ep->me_key == NULL || ep->me_key == key)
 		return ep;
 
+  // why two comparation here?
+  // well,in python, if we use intObject as key in a dictObject,
+  // the compare just don't work as expected.But in stringObject,
+  // change.
 	if (ep->me_key == dummy)
 		freeslot = ep;
 	else {
@@ -279,8 +284,10 @@ lookdict(dictobject *mp, PyObject *key, register long hash)
 			Py_INCREF(startkey);
 			cmp = PyObject_RichCompareBool(startkey, key, Py_EQ);
 			Py_DECREF(startkey);
+      // oops,some error raise,we just stop and return back.
 			if (cmp < 0)
-				return NULL;
+				return NULL
+      // greate! we finally find it.
 			if (ep0 == mp->ma_table && ep->me_key == startkey) {
 				if (cmp > 0)
 					return ep;
@@ -658,6 +665,11 @@ PyDict_SetItem(register PyObject *op, PyObject *key, PyObject *value)
 	 * Very large dictionaries (over 50K items) use doubling instead.
 	 * This may help applications with severe memory constraints.
 	 */
+
+  // in previous code,we just pass mp->ma_used to n_used,
+  // in mp->ma_used is larger than n_used,it means that
+  // we have used a new entry in the dict.And under this circumstance,
+  // we need to resize our dict.
 	if (!(mp->ma_used > n_used && mp->ma_fill*3 >= (mp->ma_mask+1)*2))
 		return 0;
 	return dictresize(mp, (mp->ma_used > 50000 ? 2 : 4) * mp->ma_used);
